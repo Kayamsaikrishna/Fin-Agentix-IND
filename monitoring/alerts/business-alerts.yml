@@ -1,0 +1,3 @@
+# monitoring/alerts/business-alerts.yml
+# Monitoring configuration for business-alerts.yml
+version: '1.0'

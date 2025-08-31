@@ -1,0 +1,3 @@
+# monitoring/security/access-logs.yml
+# Monitoring configuration for access-logs.yml
+version: '1.0'

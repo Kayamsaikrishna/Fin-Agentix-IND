@@ -1,0 +1,3 @@
+# monitoring/security/threat-monitoring.yml
+# Monitoring configuration for threat-monitoring.yml
+version: '1.0'

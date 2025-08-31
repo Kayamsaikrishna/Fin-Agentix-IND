@@ -1,0 +1,3 @@
+# monitoring/alerts/performance-alerts.yml
+# Monitoring configuration for performance-alerts.yml
+version: '1.0'

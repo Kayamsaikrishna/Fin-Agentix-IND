@@ -1,0 +1,3 @@
+# monitoring/security/security-alerts.yml
+# Monitoring configuration for security-alerts.yml
+version: '1.0'

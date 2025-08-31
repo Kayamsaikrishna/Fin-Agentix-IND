@@ -1,0 +1,3 @@
+# monitoring/infrastructure/storage-monitoring.yml
+# Monitoring configuration for storage-monitoring.yml
+version: '1.0'

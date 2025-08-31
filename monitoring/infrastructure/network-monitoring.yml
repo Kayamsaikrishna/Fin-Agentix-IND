@@ -1,0 +1,3 @@
+# monitoring/infrastructure/network-monitoring.yml
+# Monitoring configuration for network-monitoring.yml
+version: '1.0'

@@ -1,0 +1,3 @@
+# monitoring/alerts/critical-alerts.yml
+# Monitoring configuration for critical-alerts.yml
+version: '1.0'

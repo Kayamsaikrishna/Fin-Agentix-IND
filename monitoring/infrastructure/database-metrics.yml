@@ -1,0 +1,3 @@
+# monitoring/infrastructure/database-metrics.yml
+# Monitoring configuration for database-metrics.yml
+version: '1.0'

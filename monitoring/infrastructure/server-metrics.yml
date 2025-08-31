@@ -1,0 +1,3 @@
+# monitoring/infrastructure/server-metrics.yml
+# Monitoring configuration for server-metrics.yml
+version: '1.0'

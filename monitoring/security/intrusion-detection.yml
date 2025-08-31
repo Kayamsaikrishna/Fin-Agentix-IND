@@ -1,0 +1,3 @@
+# monitoring/security/intrusion-detection.yml
+# Monitoring configuration for intrusion-detection.yml
+version: '1.0'

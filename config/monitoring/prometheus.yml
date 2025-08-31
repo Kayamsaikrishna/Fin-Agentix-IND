@@ -1,0 +1,3 @@
+# config/monitoring/prometheus.yml
+# Configuration file for prometheus.yml
+version: '1.0'
