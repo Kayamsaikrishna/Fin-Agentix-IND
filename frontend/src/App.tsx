@@ -1,39 +1,27 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { theme } from './config/theme';
-
-// Pages
-import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
-import NotFound from './pages/NotFound';
+import ForgotPassword from './components/auth/ForgotPassword';
+import './styles/global.css';
 
-// Layout
-import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
-
-function App() {
+const App: React.FC = () => {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <div className="App">
-        <Header />
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </ThemeProvider>
+    <div className="App min-h-screen flex items-center justify-center">
+      <Routes>
+        {/* Redirect root to register */}
+        <Route path="/" element={<Navigate to="/register" replace />} />
+        
+        {/* Authentication routes */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        
+        {/* Catch all route - redirect to login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </div>
   );
-}
+};
 
 export default App;
