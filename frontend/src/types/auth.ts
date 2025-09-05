@@ -5,48 +5,44 @@ export interface User {
   phone: string;
   role: 'user' | 'admin';
   profileComplete: boolean;
-  kycStatus: 'pending' | 'verified' | 'rejected';
+  kycStatus: 'pending' | 'in_progress' | 'verified' | 'rejected';
   createdAt: string;
   lastLogin?: string;
+  aadhaarNumber?: string;
+  panNumber?: string;
+  dateOfBirth?: string;
+  address?: Address;
+  employmentDetails?: EmploymentDetails;
+  organizationDetails?: OrganizationDetails;
 }
 
-export interface UserProfile {
-  id: string;
-  userId: string;
-  aadhaarNumber: string;
-  panNumber: string;
-  dateOfBirth: string;
-  address: string;
+export interface Address {
+  addressLine1: string;
+  addressLine2?: string;
   city: string;
   state: string;
   pincode: string;
-  occupation: string;
-  monthlyIncome: string;
-  employmentType: 'salaried' | 'self_employed' | 'business' | 'student' | 'retired';
-  documents: Document[];
+  country: string;
 }
 
-export interface AdminProfile {
-  id: string;
-  userId: string;
-  organizationType: 'bank' | 'nbfc' | 'fintech' | 'cooperative' | 'mfi';
-  organizationName: string;
-  organizationRegNumber: string;
+export interface EmploymentDetails {
+  type: 'salaried' | 'self_employed' | 'business' | 'student' | 'retired';
+  companyName?: string;
+  designation?: string;
+  monthlyIncome: number;
+  workExperience?: number;
+}
+
+export interface OrganizationDetails {
+  type: 'bank' | 'nbfc' | 'fintech' | 'cooperative' | 'mfi';
+  name: string;
+  registrationNumber: string;
   rbiLicenseNumber?: string;
+  address: Address;
   designation: string;
   workEmail: string;
-  companyAddress: string;
   verificationStatus: 'pending' | 'verified' | 'rejected';
   permissions: string[];
-}
-
-export interface Document {
-  id: string;
-  name: string;
-  type: string;
-  url: string;
-  status: 'pending' | 'verified' | 'rejected';
-  uploadedAt: string;
 }
 
 export interface AuthState {
@@ -54,4 +50,30 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+  role: 'user' | 'admin';
+  rememberMe?: boolean;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  phone: string;
+  aadhaarNumber: string;
+  panNumber: string;
+  role: 'user' | 'admin';
+  userType?: 'student' | 'working_professional' | 'self_employed' | 'business_owner' | 'retired';
+  dateOfBirth?: string;
+  monthlyIncome?: string;
+  address?: Address;
+  organizationDetails?: Partial<OrganizationDetails>;
+  agreeToTerms: boolean;
+  agreeToPrivacy: boolean;
+  consentDataProcessing: boolean;
 }

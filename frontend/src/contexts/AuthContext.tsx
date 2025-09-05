@@ -1,27 +1,29 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { User, AuthState } from '../types/auth';
+import { User, AuthState, LoginCredentials, RegisterData } from '../types/auth';
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string, role: 'user' | 'admin') => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
-  register: (userData: any) => Promise<void>;
-  updateProfile: (profileData: any) => Promise<void>;
+  register: (userData: RegisterData) => Promise<void>;
+  updateProfile: (profileData: Partial<User>) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 type AuthAction = 
-  | { type: 'LOGIN_START' }
-  | { type: 'LOGIN_SUCCESS'; payload: User }
-  | { type: 'LOGIN_FAILURE'; payload: string }
+  | { type: 'AUTH_START' }
+  | { type: 'AUTH_SUCCESS'; payload: User }
+  | { type: 'AUTH_FAILURE'; payload: string }
   | { type: 'LOGOUT' }
-  | { type: 'UPDATE_USER'; payload: User };
+  | { type: 'UPDATE_USER'; payload: Partial<User> }
+  | { type: 'CLEAR_ERROR' };
 
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
-    case 'LOGIN_START':
+    case 'AUTH_START':
       return { ...state, isLoading: true, error: null };
-    case 'LOGIN_SUCCESS':
+    case 'AUTH_SUCCESS':
       return { 
         ...state, 
         isLoading: false, 
@@ -29,7 +31,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         user: action.payload, 
         error: null 
       };
-    case 'LOGIN_FAILURE':
+    case 'AUTH_FAILURE':
       return { 
         ...state, 
         isLoading: false, 
@@ -42,10 +44,16 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         ...state, 
         isAuthenticated: false, 
         user: null, 
-        error: null 
+        error: null,
+        isLoading: false
       };
     case 'UPDATE_USER':
-      return { ...state, user: action.payload };
+      return { 
+        ...state, 
+        user: state.user ? { ...state.user, ...action.payload } : null 
+      };
+    case 'CLEAR_ERROR':
+      return { ...state, error: null };
     default:
       return state;
   }
@@ -54,7 +62,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
   error: null,
 };
 
@@ -62,81 +70,152 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
-    // Check for stored authentication
-    const storedUser = localStorage.getItem('fin_agentix_user');
-    if (storedUser) {
+    // Check for stored authentication on app load
+    const initializeAuth = async () => {
       try {
-        const user = JSON.parse(storedUser);
-        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+        const token = localStorage.getItem('fin_agentix_token');
+        const storedUser = localStorage.getItem('fin_agentix_user');
+        
+        if (token && storedUser) {
+          const user = JSON.parse(storedUser);
+          // Validate token with backend
+          // For now, we'll trust the stored data
+          dispatch({ type: 'AUTH_SUCCESS', payload: user });
+        } else {
+          dispatch({ type: 'LOGOUT' });
+        }
       } catch (error) {
+        console.error('Auth initialization error:', error);
+        localStorage.removeItem('fin_agentix_token');
         localStorage.removeItem('fin_agentix_user');
+        dispatch({ type: 'LOGOUT' });
       }
-    }
+    };
+
+    initializeAuth();
   }, []);
 
-  const login = async (email: string, password: string, role: 'user' | 'admin') => {
-    dispatch({ type: 'LOGIN_START' });
+  const login = async (credentials: LoginCredentials) => {
+    dispatch({ type: 'AUTH_START' });
     
     try {
-      // Simulate API call
+      // TODO: Replace with actual API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Mock user data
-      const user: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        email,
-        fullName: role === 'admin' ? 'Admin User' : 'John Doe',
-        phone: '+91 9876543210',
-        role,
-        profileComplete: true,
-        kycStatus: 'verified',
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
-      };
+      // Simulate different responses based on credentials
+      if (credentials.email === 'admin@fin-agentix.com' && credentials.password === 'admin123') {
+        const adminUser: User = {
+          id: 'admin_001',
+          email: credentials.email,
+          fullName: 'Admin User',
+          phone: '+91 9876543210',
+          role: 'admin',
+          profileComplete: true,
+          kycStatus: 'verified',
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+          organizationDetails: {
+            type: 'fintech',
+            name: 'Fin-Agentix India',
+            registrationNumber: 'U65999MH2023PTC123456',
+            address: {
+              addressLine1: 'Tech Park, Bandra Kurla Complex',
+              city: 'Mumbai',
+              state: 'Maharashtra',
+              pincode: '400051',
+              country: 'India'
+            },
+            designation: 'System Administrator',
+            workEmail: 'admin@fin-agentix.com',
+            verificationStatus: 'verified',
+            permissions: ['all']
+          }
+        };
+        
+        const token = 'mock_admin_token_' + Date.now();
+        localStorage.setItem('fin_agentix_token', token);
+        localStorage.setItem('fin_agentix_user', JSON.stringify(adminUser));
+        dispatch({ type: 'AUTH_SUCCESS', payload: adminUser });
+      } else if (credentials.email && credentials.password) {
+        const user: User = {
+          id: 'user_' + Math.random().toString(36).substr(2, 9),
+          email: credentials.email,
+          fullName: 'John Doe',
+          phone: '+91 9876543210',
+          role: 'user',
+          profileComplete: false,
+          kycStatus: 'pending',
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        };
 
-      localStorage.setItem('fin_agentix_user', JSON.stringify(user));
-      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+        const token = 'mock_user_token_' + Date.now();
+        localStorage.setItem('fin_agentix_token', token);
+        localStorage.setItem('fin_agentix_user', JSON.stringify(user));
+        dispatch({ type: 'AUTH_SUCCESS', payload: user });
+      } else {
+        throw new Error('Invalid credentials');
+      }
     } catch (error) {
-      dispatch({ type: 'LOGIN_FAILURE', payload: 'Login failed. Please try again.' });
+      dispatch({ type: 'AUTH_FAILURE', payload: (error as Error).message });
+      throw error;
     }
   };
 
   const logout = () => {
+    localStorage.removeItem('fin_agentix_token');
     localStorage.removeItem('fin_agentix_user');
     dispatch({ type: 'LOGOUT' });
   };
 
-  const register = async (userData: any) => {
-    dispatch({ type: 'LOGIN_START' });
+  const register = async (userData: RegisterData) => {
+    dispatch({ type: 'AUTH_START' });
     
     try {
-      // Simulate API call
+      // TODO: Replace with actual API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const user: User = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: 'user_' + Math.random().toString(36).substr(2, 9),
         email: userData.email,
         fullName: userData.fullName,
         phone: userData.phone,
-        role: userData.role || 'user',
+        role: userData.role,
         profileComplete: false,
         kycStatus: 'pending',
         createdAt: new Date().toISOString(),
+        aadhaarNumber: userData.aadhaarNumber,
+        panNumber: userData.panNumber,
+        dateOfBirth: userData.dateOfBirth,
+        address: userData.address,
+        employmentDetails: userData.userType ? {
+          type: userData.userType,
+          monthlyIncome: parseInt(userData.monthlyIncome?.split('-')[0] || '0')
+        } : undefined,
+        organizationDetails: userData.organizationDetails as OrganizationDetails
       };
 
+      const token = 'mock_token_' + Date.now();
+      localStorage.setItem('fin_agentix_token', token);
       localStorage.setItem('fin_agentix_user', JSON.stringify(user));
-      dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+      dispatch({ type: 'AUTH_SUCCESS', payload: user });
     } catch (error) {
-      dispatch({ type: 'LOGIN_FAILURE', payload: 'Registration failed. Please try again.' });
+      dispatch({ type: 'AUTH_FAILURE', payload: (error as Error).message });
+      throw error;
     }
   };
 
-  const updateProfile = async (profileData: any) => {
+  const updateProfile = async (profileData: Partial<User>) => {
     if (state.user) {
       const updatedUser = { ...state.user, ...profileData };
       localStorage.setItem('fin_agentix_user', JSON.stringify(updatedUser));
-      dispatch({ type: 'UPDATE_USER', payload: updatedUser });
+      dispatch({ type: 'UPDATE_USER', payload: profileData });
     }
+  };
+
+  const refreshUser = async () => {
+    // TODO: Implement user refresh from API
+    console.log('Refreshing user data...');
   };
 
   return (
@@ -147,6 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         register,
         updateProfile,
+        refreshUser,
       }}
     >
       {children}

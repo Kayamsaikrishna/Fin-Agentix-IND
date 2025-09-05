@@ -25,6 +25,9 @@ import {
   HeartPulse,
   Smartphone,
   Bike,
+  Calculator,
+  HelpCircle,
+  ChevronRight,
 } from 'lucide-react';
 import FinAgentixLogo from '../../assets/fin-agentix-logo.jpeg';
 
@@ -34,12 +37,16 @@ const DashboardLayout: React.FC = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
   const userNavItems = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Loan Applications', href: '/loans', icon: FileText },
-    { name: 'My Profile', href: '/profile', icon: User },
+    { name: 'Apply for Loan', href: '/loans/apply', icon: FileText },
+    { name: 'My Applications', href: '/loans/my-applications', icon: Briefcase },
     { name: 'Documents', href: '/documents', icon: FileText },
+    { name: 'EMI Calculator', href: '/calculator', icon: Calculator },
+    { name: 'Profile', href: '/profile', icon: User },
+    { name: 'Help & Support', href: '/support', icon: HelpCircle },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
@@ -47,7 +54,6 @@ const DashboardLayout: React.FC = () => {
     { name: 'Admin Dashboard', href: '/admin/dashboard', icon: BarChart3 },
     { name: 'User Management', href: '/admin/users', icon: Users },
     { name: 'Loan Management', href: '/admin/loans', icon: Briefcase },
-    { name: 'Scheme Management', href: '/admin/schemes', icon: Building2 },
     { 
       name: 'Loan Sectors', 
       href: '/admin/sectors', 
@@ -64,9 +70,11 @@ const DashboardLayout: React.FC = () => {
         { name: 'Credit Cards', href: '/admin/sectors/credit-cards', icon: CreditCard },
         { name: 'Two Wheeler', href: '/admin/sectors/two-wheeler', icon: Bike },
         { name: 'Digital Loans', href: '/admin/sectors/digital', icon: Smartphone },
+        { name: 'Microfinance', href: '/admin/sectors/microfinance', icon: Users },
       ]
     },
-    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { name: 'Scheme Management', href: '/admin/schemes', icon: Building2 },
+    { name: 'Analytics & Reports', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Compliance', href: '/admin/compliance', icon: Shield },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
@@ -80,6 +88,14 @@ const DashboardLayout: React.FC = () => {
 
   const isActive = (href: string) => {
     return location.pathname === href || location.pathname.startsWith(href + '/');
+  };
+
+  const toggleSubmenu = (itemName: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(itemName) 
+        ? prev.filter(name => name !== itemName)
+        : [...prev, itemName]
+    );
   };
 
   return (
@@ -109,45 +125,67 @@ const DashboardLayout: React.FC = () => {
           </button>
         </div>
 
-        <nav className="mt-6 px-3">
+        <nav className="mt-6 px-3 flex-1 overflow-y-auto">
           <div className="space-y-1">
             {navItems.map((item) => (
               <div key={item.name}>
-                <Link
-                  to={item.href}
-                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className={`mr-3 h-5 w-5 ${
-                    isActive(item.href) ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'
-                  }`} />
-                  {item.name}
-                  {item.subItems && (
-                    <ChevronDown className="ml-auto h-4 w-4" />
-                  )}
-                </Link>
-                {item.subItems && (
-                  <div className="ml-6 mt-1 space-y-1">
-                    {item.subItems.map((subItem) => (
-                      <Link
-                        key={subItem.name}
-                        to={subItem.href}
-                        className={`group flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
-                          isActive(subItem.href)
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                        }`}
-                        onClick={() => setSidebarOpen(false)}
-                      >
-                        <subItem.icon className="mr-3 h-4 w-4" />
-                        {subItem.name}
-                      </Link>
-                    ))}
+                {item.subItems ? (
+                  <div>
+                    <button
+                      onClick={() => toggleSubmenu(item.name)}
+                      className={`group flex items-center justify-between w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        expandedMenus.includes(item.name) || location.pathname.startsWith(item.href)
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <item.icon className={`mr-3 h-5 w-5 ${
+                          expandedMenus.includes(item.name) || location.pathname.startsWith(item.href) 
+                            ? 'text-blue-600' 
+                            : 'text-slate-400 group-hover:text-slate-600'
+                        }`} />
+                        {item.name}
+                      </div>
+                      <ChevronRight className={`h-4 w-4 transition-transform ${
+                        expandedMenus.includes(item.name) ? 'rotate-90' : ''
+                      }`} />
+                    </button>
+                    {expandedMenus.includes(item.name) && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {item.subItems.map((subItem) => (
+                          <Link
+                            key={subItem.name}
+                            to={subItem.href}
+                            className={`group flex items-center px-3 py-2 text-sm rounded-lg transition-colors ${
+                              isActive(subItem.href)
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                            }`}
+                            onClick={() => setSidebarOpen(false)}
+                          >
+                            <subItem.icon className="mr-3 h-4 w-4" />
+                            {subItem.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
+                ) : (
+                  <Link
+                    to={item.href}
+                    className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <item.icon className={`mr-3 h-5 w-5 ${
+                      isActive(item.href) ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'
+                    }`} />
+                    {item.name}
+                  </Link>
                 )}
               </div>
             ))}
@@ -155,10 +193,10 @@ const DashboardLayout: React.FC = () => {
         </nav>
 
         {/* User info at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200">
+        <div className="p-4 border-t border-slate-200">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
                   {user?.fullName?.charAt(0) || 'U'}
                 </span>
@@ -169,7 +207,7 @@ const DashboardLayout: React.FC = () => {
                 {user?.fullName}
               </p>
               <p className="text-xs text-slate-500 truncate">
-                {user?.role === 'admin' ? 'Administrator' : 'User'}
+                {user?.role === 'admin' ? 'Administrator' : 'User Account'}
               </p>
             </div>
           </div>
@@ -179,7 +217,7 @@ const DashboardLayout: React.FC = () => {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Top header */}
-        <header className="bg-white shadow-sm border-b border-slate-200">
+        <header className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-30">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center">
               <button
@@ -194,8 +232,8 @@ const DashboardLayout: React.FC = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="Search..."
-                    className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Search applications, users, schemes..."
+                    className="pl-10 pr-4 py-2 w-80 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -218,6 +256,10 @@ const DashboardLayout: React.FC = () => {
                     <span className="text-white text-sm font-medium">
                       {user?.fullName?.charAt(0) || 'U'}
                     </span>
+                  </div>
+                  <div className="hidden md:block text-left">
+                    <p className="text-sm font-medium text-slate-900">{user?.fullName}</p>
+                    <p className="text-xs text-slate-500">{user?.role === 'admin' ? 'Administrator' : 'User'}</p>
                   </div>
                   <ChevronDown className="w-4 h-4 text-slate-400" />
                 </button>
