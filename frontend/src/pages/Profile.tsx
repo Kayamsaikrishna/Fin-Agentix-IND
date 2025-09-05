@@ -1,272 +1,619 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  ShieldCheck, User, Mail, Phone, Calendar, CheckCircle2, XCircle, Hourglass, 
-  Landmark, Banknote, TrendingUp, FileText, Edit, LogOut, Settings, Upload
+import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import {
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  MapPin,
+  Building,
+  CreditCard,
+  FileText,
+  Edit,
+  Save,
+  X,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Upload,
+  Eye,
+  Download,
+  Shield,
+  Briefcase,
+  Home,
+  Car,
+  GraduationCap,
 } from 'lucide-react';
 
-// --- Reusable Components (assuming they are in shared files) ---
-const Header = () => (
-  <header className="bg-white shadow-md sticky top-0 z-50">
-    <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between items-center h-16">
-        <div className="flex-shrink-0">
-          <Link to="/loans" className="flex items-center text-blue-600">
-            <ShieldCheck className="w-8 h-8 mr-2" />
-            <span className="text-2xl font-bold">Fin-Agentix</span>
-          </Link>
-        </div>
-        <div className="flex items-center space-x-4">
-            <span className="font-medium text-gray-700">Welcome, Anjali!</span>
-            <Link to="/profile" title="Profile"><Settings className="w-6 h-6 text-gray-600 hover:text-blue-600"/></Link>
-            <Link to="/login" title="Logout"><LogOut className="w-6 h-6 text-gray-600 hover:text-blue-600"/></Link>
+const Profile: React.FC = () => {
+  const { user } = useAuth();
+
+  if (user?.role === 'admin') {
+    return <AdminProfile />;
+  }
+
+  return <UserProfile />;
+};
+
+const UserProfile: React.FC = () => {
+  const { user, updateProfile } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('personal');
+  const [editData, setEditData] = useState({
+    fullName: user?.fullName || '',
+    phone: user?.phone || '',
+    dateOfBirth: user?.dateOfBirth || '',
+    occupation: user?.employmentDetails?.companyName || '',
+    monthlyIncome: user?.employmentDetails?.monthlyIncome || 0,
+  });
+
+  const handleSave = async () => {
+    try {
+      await updateProfile(editData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
+  };
+
+  const kycStatus = user?.kycStatus || 'pending';
+  const profileCompletion = user?.profileComplete ? 100 : 60;
+
+  const documents = [
+    { name: 'Aadhaar Card', status: 'verified', uploadedAt: '2025-01-15', type: 'identity' },
+    { name: 'PAN Card', status: 'verified', uploadedAt: '2025-01-15', type: 'identity' },
+    { name: 'Bank Statement', status: 'pending', uploadedAt: '2025-01-16', type: 'income' },
+    { name: 'Salary Slip', status: 'pending', uploadedAt: '2025-01-16', type: 'income' },
+  ];
+
+  const loanApplications = [
+    { id: '1', type: 'Personal Loan', amount: '₹5,00,000', status: 'under_review', appliedDate: '2025-01-15', icon: User },
+    { id: '2', type: 'Home Loan', amount: '₹25,00,000', status: 'draft', appliedDate: '2025-01-10', icon: Home },
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'verified': case 'approved': return 'text-green-600 bg-green-100';
+      case 'pending': case 'under_review': return 'text-yellow-600 bg-yellow-100';
+      case 'rejected': return 'text-red-600 bg-red-100';
+      case 'draft': return 'text-slate-600 bg-slate-100';
+      default: return 'text-slate-600 bg-slate-100';
+    }
+  };
+
+  const tabs = [
+    { id: 'personal', name: 'Personal Info', icon: User },
+    { id: 'documents', name: 'Documents', icon: FileText },
+    { id: 'loans', name: 'Loan Applications', icon: CreditCard },
+    { id: 'security', name: 'Security', icon: Shield },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Profile Header */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-6">
+              <div className="relative">
+                <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-bold text-white">
+                    {user?.fullName?.charAt(0) || 'U'}
+                  </span>
+                </div>
+                <button className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1.5 hover:bg-blue-700 transition">
+                  <Upload className="w-3 h-3" />
+                </button>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">{user?.fullName}</h1>
+                <p className="text-slate-600">{user?.email}</p>
+                <div className="flex items-center mt-2 space-x-4">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(kycStatus)}`}>
+                    {kycStatus === 'verified' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                    {kycStatus === 'pending' && <Clock className="w-3 h-3 mr-1" />}
+                    {kycStatus === 'rejected' && <AlertCircle className="w-3 h-3 mr-1" />}
+                    KYC {kycStatus}
+                  </span>
+                  <span className="text-sm text-slate-500">
+                    Profile {profileCompletion}% complete
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="btn btn-ghost"
+            >
+              {isEditing ? <X className="w-4 h-4 mr-2" /> : <Edit className="w-4 h-4 mr-2" />}
+              {isEditing ? 'Cancel' : 'Edit Profile'}
+            </button>
+          </div>
+
+          {/* Profile Completion Bar */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-slate-700">Profile Completion</span>
+              <span className="text-sm text-slate-500">{profileCompletion}%</span>
+            </div>
+            <div className="w-full bg-slate-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${profileCompletion}%` }}
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
-    </nav>
-  </header>
-);
 
-const Footer = () => (
-    <footer className="bg-gray-800 text-white mt-auto">
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center text-gray-400 text-sm">
-            &copy; {new Date().getFullYear()} Fin-Agentix India. All Rights Reserved.
-        </div>
-    </footer>
-);
-
-// --- Mock Data Simulation ---
-const userProfileData = {
-    studentDetails: {
-        fullName: "Anjali Sharma",
-        dob: "15-08-2003",
-        gender: "Female",
-        aadhaar: "XXXX-XXXX-8765",
-        mobile: "+91 98XXXXXX01",
-        email: "anjali.s@example.com",
-        profilePhotoUrl: "https://placehold.co/128x128/EBF4FF/3B82F6?text=AS" // Placeholder image
-    },
-    guardianDetails: {
-        name: "Rajesh Sharma",
-        relation: "Father",
-        pan: "ABCDE1234F",
-        employment: "Salaried",
-        annualIncome: "₹12,00,000"
-    },
-    educationDetails: {
-        university: "IIT Bombay",
-        course: "B.Tech in Computer Science",
-        duration: "4 Years",
-        totalFees: "₹8,50,000"
-    }
-};
-
-const loanApplicationData = {
-    applicationId: "EDU-2025-84321",
-    status: "Approved", // Can be "Approved", "Pending", "Rejected"
-    aiRiskScore: 82, // Score out of 100
-    kyc: {
-        aadhaar: "Verified",
-        pan: "Verified",
-        itr: "Verified"
-    },
-    loanOffers: [
-        { bank: "HDFC Bank", amount: "₹7,00,000", interest: "8.5%", tenure: "5 years", emi: "₹14,525" },
-        { bank: "State Bank of India", amount: "₹7,50,000", interest: "8.2%", tenure: "7 years", emi: "₹11,320" },
-        { bank: "ICICI Bank", amount: "₹6,50,000", interest: "8.9%", tenure: "5 years", emi: "₹13,530" },
-    ],
-    repayment: {
-        totalAmount: "₹7,00,000",
-        paid: "₹58,100",
-        remaining: "₹6,41,900",
-        emi: "₹14,525",
-        nextDueDate: "05 Oct 2025",
-        paymentsMade: 4,
-        totalPayments: 60
-    }
-};
-
-// --- Child Components for the Dashboard ---
-
-const ProfileHeader = ({ user, appId }) => (
-    <div className="bg-white rounded-xl shadow-md p-6 mb-8 flex items-center space-x-6">
-        <div className="flex-shrink-0 relative">
-            <img 
-                className="w-24 h-24 rounded-full border-4 border-blue-200 object-cover" 
-                src={user.profilePhotoUrl} 
-                alt="Profile Photo" 
-            />
-            <button className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1.5 hover:bg-blue-700 transition">
-                <Upload className="w-4 h-4" />
-            </button>
-        </div>
-        <div>
-            <h1 className="text-3xl font-bold text-gray-900">{user.fullName}</h1>
-            <p className="text-gray-500">Application ID: {appId}</p>
-        </div>
-    </div>
-);
-
-
-const KycStatusCard = ({ kyc }) => (
-    <div className="bg-white p-6 rounded-xl shadow-md">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">KYC Verification</h3>
-        <ul className="space-y-3">
-            <li className="flex items-center justify-between">
-                <span className="text-gray-600">Aadhaar Verification</span>
-                <span className="flex items-center text-green-600 font-semibold"><CheckCircle2 className="w-5 h-5 mr-2"/> {kyc.aadhaar}</span>
-            </li>
-            <li className="flex items-center justify-between">
-                <span className="text-gray-600">PAN Verification</span>
-                <span className="flex items-center text-green-600 font-semibold"><CheckCircle2 className="w-5 h-5 mr-2"/> {kyc.pan}</span>
-            </li>
-            <li className="flex items-center justify-between">
-                <span className="text-gray-600">Income Tax (ITR)</span>
-                <span className="flex items-center text-green-600 font-semibold"><CheckCircle2 className="w-5 h-5 mr-2"/> {kyc.itr}</span>
-            </li>
-        </ul>
-    </div>
-);
-
-const LoanEligibilityCard = ({ status, score }) => {
-    const getStatusInfo = () => {
-        switch(status) {
-            case "Approved": return { text: "Congratulations! Approved", color: "text-green-600", icon: <CheckCircle2/> };
-            case "Pending": return { text: "Under Review", color: "text-yellow-600", icon: <Hourglass/> };
-            case "Rejected": return { text: "Application Rejected", color: "text-red-600", icon: <XCircle/> };
-            default: return { text: "Unknown", color: "text-gray-600", icon: <User/> };
-        }
-    };
-    const statusInfo = getStatusInfo();
-
-    return (
-        <div className="bg-white p-6 rounded-xl shadow-md text-center">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Loan Eligibility</h3>
-            <div className={`text-2xl font-bold ${statusInfo.color} flex items-center justify-center mb-4`}>
-                {statusInfo.icon}
-                <span className="ml-2">{statusInfo.text}</span>
-            </div>
-            <p className="text-gray-600">Based on our AI-powered assessment, your profile risk score is:</p>
-            <p className="text-4xl font-bold text-blue-600 my-2">{score}<span className="text-xl">/100</span></p>
-        </div>
-    );
-};
-
-const LoanOffersCard = ({ offers }) => (
-    <div className="bg-white p-6 rounded-xl shadow-md col-span-1 md:col-span-2">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">Your Loan Offers</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {offers.map((offer, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4 text-center hover:border-blue-500 hover:shadow-lg transition">
-                    <h4 className="font-bold text-gray-700">{offer.bank}</h4>
-                    <p className="text-2xl font-bold text-blue-600 my-2">{offer.amount}</p>
-                    <p className="text-sm text-gray-500">@ {offer.interest} p.a.</p>
-                    <p className="text-sm text-gray-500">EMI: {offer.emi}/month</p>
-                    <button className="mt-4 w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
-                        Accept Offer
-                    </button>
-                </div>
+      {/* Tab Navigation */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="border-b border-slate-200">
+          <nav className="flex space-x-8 px-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                }`}
+              >
+                <tab.icon className="w-4 h-4 mr-2" />
+                {tab.name}
+              </button>
             ))}
+          </nav>
         </div>
-    </div>
-);
 
-const RepaymentTrackerCard = ({ repayment }) => {
-    const progress = (repayment.paymentsMade / repayment.totalPayments) * 100;
-    return (
-        <div className="bg-white p-6 rounded-xl shadow-md col-span-1 md:col-span-2">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Repayment Tracker</h3>
-            <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
-                <div className="bg-blue-600 h-4 rounded-full" style={{ width: `${progress}%` }}></div>
+        <div className="p-6">
+          {activeTab === 'personal' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="form-label">Full Name</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editData.fullName}
+                      onChange={(e) => setEditData(prev => ({ ...prev, fullName: e.target.value }))}
+                      className="form-input"
+                    />
+                  ) : (
+                    <p className="text-slate-900 font-medium">{user?.fullName}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="form-label">Email Address</label>
+                  <p className="text-slate-900 font-medium">{user?.email}</p>
+                  <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
+                </div>
+                <div>
+                  <label className="form-label">Phone Number</label>
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      value={editData.phone}
+                      onChange={(e) => setEditData(prev => ({ ...prev, phone: e.target.value }))}
+                      className="form-input"
+                    />
+                  ) : (
+                    <p className="text-slate-900 font-medium">{user?.phone}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="form-label">Date of Birth</label>
+                  {isEditing ? (
+                    <input
+                      type="date"
+                      value={editData.dateOfBirth}
+                      onChange={(e) => setEditData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                      className="form-input"
+                    />
+                  ) : (
+                    <p className="text-slate-900 font-medium">{user?.dateOfBirth || 'Not provided'}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="form-label">Aadhaar Number</label>
+                  <p className="text-slate-900 font-medium">
+                    {user?.aadhaarNumber ? `XXXX-XXXX-${user.aadhaarNumber.slice(-4)}` : 'Not provided'}
+                  </p>
+                </div>
+                <div>
+                  <label className="form-label">PAN Number</label>
+                  <p className="text-slate-900 font-medium">{user?.panNumber || 'Not provided'}</p>
+                </div>
+              </div>
+
+              {isEditing && (
+                <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="btn btn-ghost"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="btn btn-primary"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div>
-                    <p className="text-gray-500 text-sm">Next EMI Due</p>
-                    <p className="font-bold text-gray-800">{repayment.nextDueDate}</p>
-                </div>
-                <div>
-                    <p className="text-gray-500 text-sm">Amount Paid</p>
-                    <p className="font-bold text-green-600">{repayment.paid}</p>
-                </div>
-                <div>
-                    <p className="text-gray-500 text-sm">Remaining</p>
-                    <p className="font-bold text-red-600">{repayment.remaining}</p>
-                </div>
-                 <div>
-                    <p className="text-gray-500 text-sm">Payments Made</p>
-                    <p className="font-bold text-gray-800">{repayment.paymentsMade}/{repayment.totalPayments}</p>
-                </div>
+          )}
+
+          {activeTab === 'documents' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-900">Document Verification</h3>
+                <button className="btn btn-primary">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Document
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-4">
+                {documents.map((doc, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="p-2 bg-slate-100 rounded-lg">
+                        <FileText className="w-5 h-5 text-slate-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-900">{doc.name}</p>
+                        <p className="text-sm text-slate-500">Uploaded on {doc.uploadedAt}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
+                        {doc.status === 'verified' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                        {doc.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
+                        {doc.status}
+                      </span>
+                      <button className="text-slate-400 hover:text-slate-600">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="text-slate-400 hover:text-slate-600">
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+          )}
+
+          {activeTab === 'loans' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-900">Loan Applications</h3>
+                <button className="btn btn-primary">
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Application
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-4">
+                {loanApplications.map((loan) => (
+                  <div key={loan.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center space-x-4">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <loan.icon className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-900">{loan.type}</p>
+                        <p className="text-sm text-slate-500">{loan.amount} • Applied on {loan.appliedDate}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(loan.status)}`}>
+                        {loan.status === 'approved' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                        {loan.status === 'under_review' && <Clock className="w-3 h-3 mr-1" />}
+                        {loan.status === 'draft' && <Edit className="w-3 h-3 mr-1" />}
+                        {loan.status.replace('_', ' ')}
+                      </span>
+                      <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {loanApplications.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CreditCard className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-slate-900 mb-2">No loan applications yet</h3>
+                  <p className="text-slate-600 mb-4">Start your financial journey by applying for a loan</p>
+                  <button className="btn btn-primary">
+                    Apply for Loan
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'security' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-slate-900">Security Settings</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                  <div>
+                    <p className="font-medium text-slate-900">Password</p>
+                    <p className="text-sm text-slate-500">Last changed 30 days ago</p>
+                  </div>
+                  <button className="btn btn-ghost">Change Password</button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                  <div>
+                    <p className="font-medium text-slate-900">Two-Factor Authentication</p>
+                    <p className="text-sm text-slate-500">Add an extra layer of security</p>
+                  </div>
+                  <button className="btn btn-ghost">Enable 2FA</button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                  <div>
+                    <p className="font-medium text-slate-900">Login Sessions</p>
+                    <p className="text-sm text-slate-500">Manage your active sessions</p>
+                  </div>
+                  <button className="btn btn-ghost">View Sessions</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-    );
+      </div>
+
+      {/* Tab Content */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="border-b border-slate-200">
+          <nav className="flex space-x-8 px-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                }`}
+              >
+                <tab.icon className="w-4 h-4 mr-2" />
+                {tab.name}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="p-6">
+          {/* Tab content is rendered above */}
+        </div>
+      </div>
+    </div>
+  );
 };
 
-const ProfileDetailsSection = ({ profile }) => (
-    <div className="bg-white p-6 rounded-xl shadow-md mt-8">
-        <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Application Details</h2>
-            <button className="flex items-center text-blue-600 font-semibold hover:underline">
-                <Edit className="w-5 h-5 mr-2"/> Edit Application
-            </button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Student Details */}
-            <div>
-                <h4 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Student Details</h4>
-                <p><strong>Full Name:</strong> {profile.studentDetails.fullName}</p>
-                <p><strong>Date of Birth:</strong> {profile.studentDetails.dob}</p>
-                <p><strong>Aadhaar:</strong> {profile.studentDetails.aadhaar}</p>
-                <p><strong>Mobile:</strong> {profile.studentDetails.mobile}</p>
-                <p><strong>Email:</strong> {profile.studentDetails.email}</p>
-            </div>
-            {/* Guardian Details */}
-            <div>
-                <h4 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Guardian Details</h4>
-                <p><strong>Name:</strong> {profile.guardianDetails.name}</p>
-                <p><strong>Relation:</strong> {profile.guardianDetails.relation}</p>
-                <p><strong>PAN:</strong> {profile.guardianDetails.pan}</p>
-                <p><strong>Income:</strong> {profile.guardianDetails.annualIncome}</p>
-            </div>
-             {/* Education Details */}
-            <div>
-                <h4 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Education & Loan</h4>
-                <p><strong>University:</strong> {profile.educationDetails.university}</p>
-                <p><strong>Course:</strong> {profile.educationDetails.course}</p>
-                <p><strong>Total Fees:</strong> {profile.educationDetails.totalFees}</p>
-                <p><strong>Applied For:</strong> {loanApplicationData.repayment.totalAmount}</p>
-            </div>
-        </div>
-    </div>
-);
+const AdminProfile: React.FC = () => {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('organization');
 
+  const tabs = [
+    { id: 'organization', name: 'Organization', icon: Building },
+    { id: 'permissions', name: 'Permissions', icon: Shield },
+    { id: 'activity', name: 'Activity Log', icon: Clock },
+    { id: 'security', name: 'Security', icon: Shield },
+  ];
 
-// --- Main Profile Page Component ---
-const Profile: React.FC = () => {
-    const { status, aiRiskScore, kyc, loanOffers, repayment, applicationId } = loanApplicationData;
-    const { studentDetails } = userProfileData;
+  const permissions = [
+    { name: 'User Management', granted: true, description: 'Create, edit, and manage user accounts' },
+    { name: 'Loan Scheme Management', granted: true, description: 'Create and modify loan schemes' },
+    { name: 'Analytics Access', granted: true, description: 'View platform analytics and reports' },
+    { name: 'Compliance Management', granted: true, description: 'Manage compliance settings and reports' },
+    { name: 'System Administration', granted: false, description: 'Full system administration access' },
+  ];
 
-    return (
-        <div className="flex flex-col min-h-screen bg-gray-100">
-            <Header />
-            <main className="flex-grow">
-                <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                    <ProfileHeader user={studentDetails} appId={applicationId} />
+  const activityLog = [
+    { action: 'Created new loan scheme', timestamp: '2025-01-16 10:30 AM', details: 'Personal Loan - Standard' },
+    { action: 'Updated user permissions', timestamp: '2025-01-16 09:15 AM', details: 'Modified access for team member' },
+    { action: 'Generated compliance report', timestamp: '2025-01-15 04:45 PM', details: 'Monthly RBI compliance report' },
+    { action: 'Approved loan application', timestamp: '2025-01-15 02:20 PM', details: 'Application ID: LOAN-2025-001' },
+  ];
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Dashboard Cards */}
-                        <LoanEligibilityCard status={status} score={aiRiskScore} />
-                        <KycStatusCard kyc={kyc} />
-                        {status === "Approved" && <LoanOffersCard offers={loanOffers} />}
-                        {status === "Approved" && <RepaymentTrackerCard repayment={repayment} />}
-                    </div>
-
-                    {/* Full Profile Details Section */}
-                    <ProfileDetailsSection profile={userProfileData} />
+  return (
+    <div className="space-y-6">
+      {/* Admin Profile Header */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-6">
+              <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-2xl font-bold text-white">
+                  {user?.fullName?.charAt(0) || 'A'}
+                </span>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">{user?.fullName}</h1>
+                <p className="text-slate-600">{user?.organizationDetails?.designation}</p>
+                <p className="text-sm text-slate-500">{user?.organizationDetails?.name}</p>
+                <div className="flex items-center mt-2">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    user?.organizationDetails?.verificationStatus === 'verified' 
+                      ? 'text-green-600 bg-green-100' 
+                      : 'text-yellow-600 bg-yellow-100'
+                  }`}>
+                    {user?.organizationDetails?.verificationStatus === 'verified' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                    {user?.organizationDetails?.verificationStatus === 'pending' && <Clock className="w-3 h-3 mr-1" />}
+                    Organization {user?.organizationDetails?.verificationStatus || 'Pending'}
+                  </span>
                 </div>
-            </main>
-            <Footer />
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-slate-500">Admin ID</p>
+              <p className="font-mono text-sm text-slate-900">{user?.id}</p>
+            </div>
+          </div>
         </div>
-    );
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="border-b border-slate-200">
+          <nav className="flex space-x-8 px-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-purple-500 text-purple-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                }`}
+              >
+                <tab.icon className="w-4 h-4 mr-2" />
+                {tab.name}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="p-6">
+          {activeTab === 'organization' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="form-label">Organization Name</label>
+                  <p className="text-slate-900 font-medium">{user?.organizationDetails?.name}</p>
+                </div>
+                <div>
+                  <label className="form-label">Organization Type</label>
+                  <p className="text-slate-900 font-medium capitalize">{user?.organizationDetails?.type}</p>
+                </div>
+                <div>
+                  <label className="form-label">Registration Number</label>
+                  <p className="text-slate-900 font-medium">{user?.organizationDetails?.registrationNumber}</p>
+                </div>
+                <div>
+                  <label className="form-label">RBI License Number</label>
+                  <p className="text-slate-900 font-medium">{user?.organizationDetails?.rbiLicenseNumber || 'N/A'}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="form-label">Organization Address</label>
+                  <p className="text-slate-900 font-medium">
+                    {user?.organizationDetails?.address?.addressLine1}, {user?.organizationDetails?.address?.city}, {user?.organizationDetails?.address?.state} - {user?.organizationDetails?.address?.pincode}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'permissions' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-slate-900">Access Permissions</h3>
+              
+              <div className="space-y-4">
+                {permissions.map((permission, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                    <div>
+                      <p className="font-medium text-slate-900">{permission.name}</p>
+                      <p className="text-sm text-slate-500">{permission.description}</p>
+                    </div>
+                    <div className="flex items-center">
+                      {permission.granted ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-green-600 bg-green-100">
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          Granted
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-slate-600 bg-slate-100">
+                          <X className="w-3 h-3 mr-1" />
+                          Not Granted
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'activity' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-slate-900">Recent Activity</h3>
+              
+              <div className="space-y-4">
+                {activityLog.map((activity, index) => (
+                  <div key={index} className="flex items-start space-x-4 p-4 border border-slate-200 rounded-lg">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Activity className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-slate-900">{activity.action}</p>
+                      <p className="text-sm text-slate-500">{activity.details}</p>
+                      <p className="text-xs text-slate-400 mt-1">{activity.timestamp}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'security' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-slate-900">Security Settings</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                  <div>
+                    <p className="font-medium text-slate-900">Admin Password</p>
+                    <p className="text-sm text-slate-500">Last changed 15 days ago</p>
+                  </div>
+                  <button className="btn btn-ghost">Change Password</button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                  <div>
+                    <p className="font-medium text-slate-900">Two-Factor Authentication</p>
+                    <p className="text-sm text-slate-500">Required for admin accounts</p>
+                  </div>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-green-600 bg-green-100">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Enabled
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                  <div>
+                    <p className="font-medium text-slate-900">API Access Keys</p>
+                    <p className="text-sm text-slate-500">Manage API keys for integrations</p>
+                  </div>
+                  <button className="btn btn-ghost">Manage Keys</button>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                  <div>
+                    <p className="font-medium text-slate-900">Audit Log Access</p>
+                    <p className="text-sm text-slate-500">View detailed audit logs</p>
+                  </div>
+                  <button className="btn btn-ghost">View Logs</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Profile;
-
