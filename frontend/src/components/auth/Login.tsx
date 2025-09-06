@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, User, Building, Shield, Phone, Mail, Lock, AlertCircle, CheckCircle2, Fingerprint, Smartphone } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { login, verifyMFA } from '../../store/auth/thunks';
+import { RootState } from '../../store';
+import { clearError } from '../../store/auth/slice';
+import { MAX_LOGIN_ATTEMPTS, ACCOUNT_LOCK_DURATION } from '../../config/constants';
 import FinAgentixLogo from '../../assets/fin-agentix-logo.jpeg';
 
 interface LoginData {
@@ -26,7 +31,6 @@ interface SecurityChallenge {
 const Login: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'user' | 'admin'>('user');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [loginStep, setLoginStep] = useState<'credentials' | 'mfa'>('credentials');
   const [securityChallenge, setSecurityChallenge] = useState<SecurityChallenge | null>(null);
   const [loginData, setLoginData] = useState<LoginData>({
@@ -40,6 +44,11 @@ const Login: React.FC = () => {
   const [blockTimeLeft, setBlockTimeLeft] = useState(0);
   const [captchaRequired, setCaptchaRequired] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);
+  
+  // Redux hooks
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading: isLoading, error, requiresMFA, sessionToken } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     const checkBiometricSupport = async () => {
@@ -49,6 +58,24 @@ const Login: React.FC = () => {
     };
     checkBiometricSupport();
   }, []);
+  
+  // Clear error when changing tabs
+  useEffect(() => {
+    dispatch(clearError());
+    setErrors({
+      email: '',
+      password: '',
+      otp: '',
+      general: ''
+    });
+  }, [activeTab, dispatch]);
+  
+  // Handle MFA requirement from Redux state
+  useEffect(() => {
+    if (requiresMFA && sessionToken) {
+      setLoginStep('mfa');
+    }
+  }, [requiresMFA, sessionToken]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -99,44 +126,50 @@ const Login: React.FC = () => {
 
   const handleCredentialsSubmit = async () => {
     if (!validateCredentials()) return;
-    setIsLoading(true);
+    
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      if (Math.random() < 0.2) { throw new Error('Invalid credentials'); }
-      const needsMFA = activeTab === 'admin' ? Math.random() < 0.8 : Math.random() < 0.4;
-      if (needsMFA) {
-        const challengeType = activeTab === 'admin' ? 'sms_otp' : 'email_otp';
-        setSecurityChallenge({ type: challengeType, message: `An OTP has been sent to your registered ${challengeType === 'sms_otp' ? 'mobile number' : 'email address'}.`, attempts: 0, maxAttempts: 3 });
-        setLoginStep('mfa');
-        return;
+      // Dispatch login action
+      const result = await dispatch(login({
+        email: loginData.email,
+        password: loginData.password,
+        rememberMe: loginData.rememberMe
+      })) as any;
+      
+      if (!result.payload || result.error) {
+        // Handle failed login
+        const newAttempts = failedAttempts + 1;
+        setFailedAttempts(newAttempts);
+        if (newAttempts >= 3) { setCaptchaRequired(true); }
+        if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+          setIsBlocked(true);
+          setBlockTimeLeft(ACCOUNT_LOCK_DURATION);
+          setErrors({ general: 'Account locked. Try again in 5 minutes.' });
+        } else {
+          setErrors({ general: `Invalid credentials. ${MAX_LOGIN_ATTEMPTS - newAttempts} attempts remaining.` });
+        }
+      } else if (!requiresMFA) {
+        // If login successful and no MFA required, redirect to dashboard
+        navigate(activeTab === 'admin' ? '/admin/dashboard' : '/user/dashboard');
       }
-      alert(`${activeTab === 'admin' ? 'Admin' : 'User'} login successful!`);
+      // If MFA is required, the useEffect will handle setting the login step
     } catch (error) {
-      const newAttempts = failedAttempts + 1;
-      setFailedAttempts(newAttempts);
-      if (newAttempts >= 3) { setCaptchaRequired(true); }
-      if (newAttempts >= 5) {
-        setIsBlocked(true);
-        setBlockTimeLeft(300);
-        setErrors({ general: 'Account locked. Try again in 5 minutes.' });
-      } else {
-        setErrors({ general: `Invalid credentials. ${5 - newAttempts} attempts remaining.` });
-      }
-    } finally {
-      setIsLoading(false);
+      setErrors({ general: 'An error occurred. Please try again.' });
     }
   };
 
   const handleOTPSubmit = async () => {
     if (!validateOTP()) return;
-    setIsLoading(true);
+    
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      if (Math.random() < 0.9) {
-        alert(`${activeTab === 'admin' ? 'Admin' : 'User'} login successful!`);
-        setLoginStep('credentials');
-        setSecurityChallenge(null);
-      } else {
+      // Dispatch verifyMFA action
+      const result = await dispatch(verifyMFA({
+        email: loginData.email,
+        otp: loginData.otp,
+        sessionToken: sessionToken || ''
+      })) as any;
+      
+      if (!result.payload || result.error) {
+        // Handle failed verification
         if (securityChallenge) {
           const newAttempts = securityChallenge.attempts + 1;
           if (newAttempts >= securityChallenge.maxAttempts) {
@@ -149,39 +182,60 @@ const Login: React.FC = () => {
             setErrors({ otp: `Invalid OTP. ${securityChallenge.maxAttempts - newAttempts} attempts remaining.` });
           }
         }
+      } else {
+        // If verification successful, redirect to dashboard
+        navigate(activeTab === 'admin' ? '/admin/dashboard' : '/user/dashboard');
       }
     } catch (error) {
       setErrors({ otp: 'OTP verification failed. Please try again.' });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleBiometricLogin = async () => {
     if (!biometricSupported) { setErrors({ general: 'Biometric authentication is not supported on this device.' }); return; }
-    setIsLoading(true);
+    dispatch({ type: 'auth/setLoading', payload: true });
     try {
+      // In a real app, this would trigger biometric authentication
       await new Promise(resolve => setTimeout(resolve, 2000));
-      alert('Biometric authentication successful!');
+      
+      // Dispatch login success action
+      dispatch({
+        type: 'auth/loginSuccess',
+        payload: {
+          token: activeTab === 'admin' ? 'admin-jwt-token-123' : 'user-jwt-token-456',
+          user: {
+            email: loginData.email,
+            role: activeTab
+          }
+        }
+      });
+      
+      // Redirect to dashboard
+      navigate(activeTab === 'admin' ? '/admin/dashboard' : '/user/dashboard');
     } catch (error) {
       setErrors({ general: 'Biometric authentication failed.' });
+      dispatch({ type: 'auth/setError', payload: 'Biometric authentication failed.' });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: 'auth/setLoading', payload: false });
     }
   };
 
   const resendOTP = async () => {
-    setIsLoading(true);
+    dispatch({ type: 'auth/setLoading', payload: true });
     try {
+      // In a real app, this would call the API to resend OTP
       await new Promise(resolve => setTimeout(resolve, 1000));
       alert('OTP resent successfully!');
       if (securityChallenge) {
         setSecurityChallenge(prev => prev ? { ...prev, attempts: 0 } : null);
       }
+      setLoginData(prev => ({ ...prev, otp: '' }));
+      setErrors(prev => ({ ...prev, otp: '' }));
     } catch (error) {
       setErrors({ otp: 'Failed to resend OTP.' });
+      dispatch({ type: 'auth/setError', payload: 'Failed to resend OTP.' });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: 'auth/setLoading', payload: false });
     }
   };
 
@@ -216,7 +270,7 @@ const Login: React.FC = () => {
 
                 {isBlocked && (<div className="notification notification-error mb-4"><h4 className="font-semibold">Account Locked</h4><p>Please wait {formatTime(blockTimeLeft)} before trying again.</p></div>)}
                 {activeTab === 'admin' && loginStep === 'credentials' && (<div className="notification notification-warning flex items-start gap-3 mb-4"><Shield className="w-5 h-5 mt-0.5 shrink-0" /><p className="text-sm">Admin accounts require multi-factor authentication and are monitored for suspicious activity.</p></div>)}
-                {errors.general && <div className="notification notification-error mb-4"><p>{errors.general}</p></div>}
+                {(errors.general || error) && <div className="notification notification-error mb-4"><p>{errors.general || error}</p></div>}
                 
                 {loginStep === 'credentials' ? (
                   <form onSubmit={(e) => { e.preventDefault(); handleCredentialsSubmit(); }} className="space-y-6">
