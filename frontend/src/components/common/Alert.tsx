@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Alert as MuiAlert,
@@ -5,6 +6,7 @@ import {
   AlertTitle,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 interface AlertProps extends Omit<MuiAlertProps, 'title'> {
   title?: string;
@@ -26,15 +28,17 @@ const Alert: React.FC<AlertProps> = ({
   variant = 'outlined',
   ...props
 }) => {
+  const { t } = useTranslation();
+
   return (
     <StyledAlert
       variant={variant}
       {...props}
       action={action}
     >
-      {title && <AlertTitle>{title}</AlertTitle>}
+      {title && <AlertTitle>{t(title)}</AlertTitle>}
       <div className="flex items-center justify-between w-full">
-        <span>{message}</span>
+        <span>{t(message)}</span>
       </div>
     </StyledAlert>
   );

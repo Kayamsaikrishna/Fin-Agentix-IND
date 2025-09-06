@@ -102,4 +102,3 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({
 };
 
 export default CurrencyInput;
-}

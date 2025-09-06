@@ -111,4 +111,3 @@ const StateDistrictSelector: React.FC<StateDistrictSelectorProps> = ({
 };
 
 export default StateDistrictSelector;
-}

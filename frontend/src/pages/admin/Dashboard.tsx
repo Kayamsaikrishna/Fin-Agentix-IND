@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   DollarSign, 
   FileText, 
@@ -15,38 +16,35 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Building,
-  Search
+  Search,
+  LogOut,
+  BookOpen
 } from 'lucide-react';
+import { getAdminStats, getRecentApplications, getSectorPerformance } from '../../api/mock';
+import { AdminStats, RecentApplication, SectorPerformance } from '../../types/admin';
+import { useAuth } from '../../contexts/AuthContext';
 
 const AdminDashboard: React.FC = () => {
+  const { logout } = useAuth();
   const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
-  
-  const stats = {
-    totalApplications: 145,
-    approvedLoans: 89,
-    pendingReviews: 32,
-    rejectedApplications: 24,
-    totalDisbursed: 2450000,
-    activeLoans: 76,
-    defaultRate: 3.2,
-    averageProcessingTime: 2.4 // days
-  };
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [recentApplications, setRecentApplications] = useState<RecentApplication[]>([]);
+  const [sectorPerformance, setSectorPerformance] = useState<SectorPerformance[]>([]);
 
-  const recentApplications = [
-    { id: 'LOAN-2024-0145', applicant: 'Rahul Sharma', amount: 150000, sector: 'Personal Loan', status: 'pending', date: '2024-09-05' },
-    { id: 'LOAN-2024-0144', applicant: 'Priya Patel', amount: 500000, sector: 'Home Loan', status: 'approved', date: '2024-09-04' },
-    { id: 'LOAN-2024-0143', applicant: 'Amit Singh', amount: 75000, sector: 'Two-Wheeler Loan', status: 'rejected', date: '2024-09-03' },
-    { id: 'LOAN-2024-0142', applicant: 'Neha Gupta', amount: 200000, sector: 'Education Loan', status: 'approved', date: '2024-09-02' },
-    { id: 'LOAN-2024-0141', applicant: 'Vikram Reddy', amount: 350000, sector: 'Business Loan', status: 'pending', date: '2024-09-01' },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      const [statsData, recentAppsData, sectorPerfData] = await Promise.all([
+        getAdminStats(),
+        getRecentApplications(),
+        getSectorPerformance(),
+      ]);
+      setStats(statsData);
+      setRecentApplications(recentAppsData);
+      setSectorPerformance(sectorPerfData);
+    };
 
-  const sectorPerformance = [
-    { sector: 'Personal Loans', applications: 45, approved: 32, disbursed: 960000, growth: 12.5 },
-    { sector: 'Home Loans', applications: 28, approved: 18, disbursed: 7200000, growth: 8.3 },
-    { sector: 'Vehicle Loans', applications: 36, approved: 22, disbursed: 1320000, growth: 15.7 },
-    { sector: 'Education Loans', applications: 19, approved: 12, disbursed: 840000, growth: 5.2 },
-    { sector: 'Business Loans', applications: 17, approved: 5, disbursed: 750000, growth: -2.1 },
-  ];
+    fetchData();
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -83,7 +81,6 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
@@ -108,59 +105,61 @@ const AdminDashboard: React.FC = () => {
               <option value="monthly">Monthly</option>
               <option value="yearly">Yearly</option>
             </select>
+            <button onClick={logout} className="p-2 rounded-full hover:bg-gray-100">
+              <LogOut className="w-6 h-6 text-gray-600" />
+            </button>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Total Applications</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalApplications}</p>
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Total Applications</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalApplications}</p>
+                </div>
+                <FileText className="w-10 h-10 text-blue-500" />
               </div>
-              <FileText className="w-10 h-10 text-blue-500" />
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Approved Loans</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.approvedLoans}</p>
+                </div>
+                <CheckCircle className="w-10 h-10 text-green-500" />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Pending Reviews</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.pendingReviews}</p>
+                </div>
+                <Clock className="w-10 h-10 text-yellow-500" />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Total Disbursed</p>
+                  <p className="text-2xl font-bold text-gray-900">₹{(stats.totalDisbursed / 100000).toFixed(1)}L</p>
+                </div>
+                <DollarSign className="w-10 h-10 text-purple-500" />
+              </div>
             </div>
           </div>
+        )}
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Approved Loans</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.approvedLoans}</p>
-              </div>
-              <CheckCircle className="w-10 h-10 text-green-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Pending Reviews</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.pendingReviews}</p>
-              </div>
-              <Clock className="w-10 h-10 text-yellow-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Total Disbursed</p>
-                <p className="text-2xl font-bold text-gray-900">₹{(stats.totalDisbursed / 100000).toFixed(1)}L</p>
-              </div>
-              <DollarSign className="w-10 h-10 text-purple-500" />
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Applications */}
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900">Recent Applications</h2>
-              <button className="text-blue-600 text-sm font-medium hover:text-blue-800">View All</button>
+              <Link to="/admin/loans" className="text-blue-600 text-sm font-medium hover:text-blue-800">View All</Link>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -195,40 +194,69 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Sector Performance */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Sector Performance</h2>
-              <button className="text-blue-600 text-sm font-medium hover:text-blue-800">Details</button>
-            </div>
-            <div className="space-y-4">
-              {sectorPerformance.map((sector) => (
-                <div key={sector.sector} className="p-4 border border-gray-100 rounded-lg hover:bg-gray-50">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-medium text-gray-900">{sector.sector}</h3>
-                    <div className="flex items-center">
-                      {getGrowthIcon(sector.growth)}
-                      <span className={`text-sm font-medium ${sector.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {Math.abs(sector.growth)}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-sm">
-                    <div>
-                      <p className="text-gray-500">Applications</p>
-                      <p className="font-medium text-gray-900">{sector.applications}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Approved</p>
-                      <p className="font-medium text-gray-900">{sector.approved}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">Disbursed</p>
-                      <p className="font-medium text-gray-900">₹{(sector.disbursed / 100000).toFixed(1)}L</p>
-                    </div>
-                  </div>
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">User Management</h2>
+                <Link to="/admin/users" className="text-blue-600 text-sm font-medium hover:text-blue-800">View All</Link>
+              </div>
+              <div className="flex items-center">
+                <Users className="w-10 h-10 text-indigo-500" />
+                <div className="ml-4">
+                  <p className="text-gray-500 text-sm">Total Users</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.totalApplications || 0}</p>
                 </div>
-              ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Loan Schemes</h2>
+                <Link to="/admin/schemes" className="text-blue-600 text-sm font-medium hover:text-blue-800">Manage</Link>
+              </div>
+              <div className="flex items-center">
+                <BookOpen className="w-10 h-10 text-teal-500" />
+                <div className="ml-4">
+                  <p className="text-gray-500 text-sm">Active Schemes</p>
+                  <p className="text-2xl font-bold text-gray-900">3</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Sector Performance</h2>
+                <button className="text-blue-600 text-sm font-medium hover:text-blue-800">Details</button>
+              </div>
+              <div className="space-y-4">
+                {sectorPerformance.map((sector) => (
+                  <div key={sector.sector} className="p-4 border border-gray-100 rounded-lg hover:bg-gray-50">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-medium text-gray-900">{sector.sector}</h3>
+                      <div className="flex items-center">
+                        {getGrowthIcon(sector.growth)}
+                        <span className={`text-sm font-medium ${sector.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {Math.abs(sector.growth)}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm">
+                      <div>
+                        <p className="text-gray-500">Applications</p>
+                        <p className="font-medium text-gray-900">{sector.applications}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Approved</p>
+                        <p className="font-medium text-gray-900">{sector.approved}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Disbursed</p>
+                        <p className="font-medium text-gray-900">₹{(sector.disbursed / 100000).toFixed(1)}L</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

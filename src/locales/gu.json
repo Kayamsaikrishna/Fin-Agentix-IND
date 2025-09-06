@@ -1,0 +1,35 @@
+
+{
+  "app": {
+    "name": "પતંજલિ"
+  },
+  "common": {
+    "back": "પાછા",
+    "submit": "સબમિટ કરો",
+    "cancel": "રદ કરો",
+    "loading": "લોડ કરી રહ્યું છે...",
+    "error": "ભૂલ",
+    "success": "સફળતા"
+  },
+  "auth": {
+    "login": "પ્રવેશ કરો",
+    "logout": "લૉગ આઉટ",
+    "register": "નોંધણી કરો",
+    "email": "ઈમેલ",
+    "password": "પાસવર્ડ",
+    "forgot_password": "પાસવર્ડ ભૂલી ગયા છો?"
+  },
+  "loan": {
+    "apply_loan": "લોન માટે અરજી કરો",
+    "loan_schemes": "લોન યોજનાઓ",
+    "my_loans": "મારી લોન",
+    "loan_type": "લોનનો પ્રકાર",
+    "amount": "રકમ",
+    "tenure": "મુદત (મહિના)",
+    "purpose": "હેતુ",
+    "status": "સ્થિતિ",
+    "pending": "બાકી",
+    "approved": "મંજૂર",
+    "rejected": "નકારવામાં આવ્યું"
+  }
+}

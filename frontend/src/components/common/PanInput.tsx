@@ -1,6 +1,7 @@
 import React from 'react';
 import { TextField, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 interface PanInputProps {
   value: string;
@@ -25,6 +26,7 @@ const PanInput: React.FC<PanInputProps> = ({
   disabled,
   required = false,
 }) => {
+  const { t } = useTranslation();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const panNumber = e.target.value.toUpperCase();
     if (panNumber.length <= 10) {
@@ -39,14 +41,14 @@ const PanInput: React.FC<PanInputProps> = ({
 
   const getHelperText = (): string => {
     if (error) return error;
-    if (value && !validatePan(value)) return 'Invalid PAN number format';
+    if (value && !validatePan(value)) return t('pan_input.invalid_format');
     return '';
   };
 
   return (
     <div className="space-y-2">
       <Typography variant="subtitle2" color="textSecondary">
-        PAN Number {required && <span className="text-red-500">*</span>}
+        {t('pan_input.label')} {required && <span className="text-red-500">*</span>}
       </Typography>
       <StyledTextField
         fullWidth
@@ -63,7 +65,7 @@ const PanInput: React.FC<PanInputProps> = ({
         className="font-mono"
       />
       <Typography variant="caption" color="textSecondary">
-        Enter your 10-character PAN number
+        {t('pan_input.helper_text')}
       </Typography>
     </div>
   );

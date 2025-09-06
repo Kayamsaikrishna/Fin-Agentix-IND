@@ -1,6 +1,7 @@
 import React from 'react';
 import { TextField, Typography, InputAdornment } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 interface PhoneInputProps {
   value: string;
@@ -24,6 +25,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   disabled,
   required = false,
 }) => {
+  const { t } = useTranslation();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const phoneNumber = e.target.value.replace(/\D/g, '');
     if (phoneNumber.length <= 10) {
@@ -38,14 +40,14 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
   const getHelperText = (): string => {
     if (error) return error;
-    if (value && !validatePhone(value)) return 'Invalid mobile number';
+    if (value && !validatePhone(value)) return t('phone_input.invalid_format');
     return '';
   };
 
   return (
     <div className="space-y-2">
       <Typography variant="subtitle2" color="textSecondary">
-        Mobile Number {required && <span className="text-red-500">*</span>}
+        {t('phone_input.label')} {required && <span className="text-red-500">*</span>}
       </Typography>
       <StyledTextField
         fullWidth
@@ -64,10 +66,10 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           pattern: '[0-9]*',
           inputMode: 'numeric',
         }}
-        placeholder="Enter 10-digit mobile number"
+        placeholder={t('phone_input.placeholder')}
       />
       <Typography variant="caption" color="textSecondary">
-        Enter your 10-digit Indian mobile number
+        {t('phone_input.helper_text')}
       </Typography>
     </div>
   );

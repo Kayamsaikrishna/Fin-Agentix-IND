@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Breadcrumbs, Link, Typography } from '@mui/material';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface BreadcrumbItem {
   label: string;
@@ -13,6 +15,7 @@ interface BreadcrumbProps {
 }
 
 const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
+  const { t } = useTranslation();
   const location = useLocation();
 
   return (
@@ -27,13 +30,13 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
         color="inherit"
         className="hover:text-primary-600"
       >
-        Home
+        {t('breadcrumb.home')}
       </Link>
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
         return isLast ? (
           <Typography key={item.label} color="text.primary">
-            {item.label}
+            {t(item.label)}
           </Typography>
         ) : (
           <Link
@@ -43,7 +46,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
             color="inherit"
             className="hover:text-primary-600"
           >
-            {item.label}
+            {t(item.label)}
           </Link>
         );
       })}

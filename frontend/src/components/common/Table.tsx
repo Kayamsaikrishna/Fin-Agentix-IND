@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Pagination from './Pagination';
+import { useTranslation } from 'react-i18next';
 
 interface Column {
   id: string;
@@ -53,12 +54,13 @@ const Table: React.FC<TableProps> = ({
   onPageChange,
   onRowsPerPageChange,
   onRowClick,
-  emptyMessage = 'No data available',
+  emptyMessage = 'table.emptyMessage',
 }) => {
+  const { t } = useTranslation();
   if (error) {
     return (
       <div className="p-8 text-center">
-        <Typography color="error">{error}</Typography>
+        <Typography color="error">{t(error)}</Typography>
       </div>
     );
   }
@@ -75,7 +77,7 @@ const Table: React.FC<TableProps> = ({
                   align={column.align}
                   style={{ minWidth: column.minWidth }}
                 >
-                  <Typography variant="subtitle2">{column.label}</Typography>
+                  <Typography variant="subtitle2">{t(column.label)}</Typography>
                 </TableCell>
               ))}
             </TableRow>
@@ -90,7 +92,7 @@ const Table: React.FC<TableProps> = ({
             ) : rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} align="center" className="h-64">
-                  <Typography color="textSecondary">{emptyMessage}</Typography>
+                  <Typography color="textSecondary">{t(emptyMessage)}</Typography>
                 </TableCell>
               </TableRow>
             ) : (

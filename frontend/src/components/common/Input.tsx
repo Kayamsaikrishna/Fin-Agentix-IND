@@ -1,7 +1,9 @@
+
 // src/components/common/Input.tsx
 import React from 'react';
 import { TextField, TextFieldProps, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 interface InputProps extends Omit<TextFieldProps, 'error'> {
   label?: string;
@@ -23,17 +25,19 @@ const Input: React.FC<InputProps> = ({
   required = false,
   ...props
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-1">
       {label && (
         <Typography variant="subtitle2" color="textSecondary">
-          {label} {required && <span className="text-red-500">*</span>}
+          {t(label)} {required && <span className="text-red-500">*</span>}
         </Typography>
       )}
       <StyledTextField
         fullWidth
         error={!!error}
-        helperText={error}
+        helperText={error && t(error)}
         size="small"
         {...props}
       />

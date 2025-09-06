@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   FormControl,
@@ -8,6 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 interface Option {
   value: string;
@@ -43,15 +45,22 @@ const Select: React.FC<SelectProps> = ({
   required = false,
   placeholder,
 }) => {
+  const { t } = useTranslation();
+
   const handleChange = (e: React.ChangeEvent<{ value: unknown }>) => {
     onChange(e.target.value as string);
   };
+
+  const translatedOptions = options.map(option => ({
+    ...option,
+    label: t(option.label),
+  }));
 
   return (
     <div className="space-y-2">
       {label && (
         <Typography variant="subtitle2" color="textSecondary">
-          {label} {required && <span className="text-red-500">*</span>}
+          {t(label)} {required && <span className="text-red-500">*</span>}
         </Typography>
       )}
       <StyledFormControl fullWidth error={!!error} disabled={disabled}>
@@ -63,16 +72,16 @@ const Select: React.FC<SelectProps> = ({
         >
           {placeholder && (
             <MenuItem value="" disabled>
-              {placeholder}
+              {t(placeholder)}
             </MenuItem>
           )}
-          {options.map((option) => (
+          {translatedOptions.map((option) => (
             <MenuItem key={option.value} value={option.value}>
               {option.label}
             </MenuItem>
           ))}
         </MuiSelect>
-        {error && <FormHelperText>{error}</FormHelperText>}
+        {error && <FormHelperText>{t(error)}</FormHelperText>}
       </StyledFormControl>
     </div>
   );

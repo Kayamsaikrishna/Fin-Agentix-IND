@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Card as MuiCard,
@@ -9,6 +10,7 @@ import {
   Divider,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 interface CardProps extends Omit<MuiCardProps, 'title'> {
   title?: string;
@@ -37,6 +39,8 @@ const Card: React.FC<CardProps> = ({
   footerBorder = false,
   ...props
 }) => {
+  const { t } = useTranslation();
+
   return (
     <StyledCard {...props}>
       {(title || subtitle || action) && (
@@ -45,11 +49,11 @@ const Card: React.FC<CardProps> = ({
             title={
               title && (
                 <Typography variant="h6" component="h2">
-                  {title}
+                  {t(title)}
                 </Typography>
               )
             }
-            subheader={subtitle}
+            subheader={subtitle && t(subtitle)}
             action={action}
             className={headerBorder ? 'border-b' : ''}
           />

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   TablePagination,
@@ -7,6 +8,7 @@ import {
   MenuItem,
 } from '@mui/material';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface PaginationProps {
   page: number;
@@ -25,6 +27,8 @@ const Pagination: React.FC<PaginationProps> = ({
   onRowsPerPageChange,
   rowsPerPageOptions = [10, 25, 50, 100],
 }) => {
+  const { t } = useTranslation();
+
   const handlePageChange = (
     event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number,
@@ -49,6 +53,10 @@ const Pagination: React.FC<PaginationProps> = ({
       onRowsPerPageChange={handleRowsPerPageChange}
       rowsPerPageOptions={rowsPerPageOptions}
       className="flex justify-end border-t py-2 px-4"
+      labelRowsPerPage={t('pagination.rows_per_page')}
+      labelDisplayedRows={({ from, to, count }) =>
+        `${from}-${to} ${t('pagination.of')} ${count}`
+      }
       nextIconButtonProps={{
         children: <ChevronRight size={20} />,
       }}

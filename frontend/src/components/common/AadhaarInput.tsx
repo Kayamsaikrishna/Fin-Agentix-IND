@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { TextField, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 interface AadhaarInputProps {
   value: string;
@@ -24,6 +26,7 @@ const AadhaarInput: React.FC<AadhaarInputProps> = ({
   disabled,
   required = false,
 }) => {
+  const { t } = useTranslation();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const aadhaarNumber = e.target.value.replace(/\D/g, '');
     if (aadhaarNumber.length <= 12) {
@@ -40,14 +43,14 @@ const AadhaarInput: React.FC<AadhaarInputProps> = ({
 
   const getHelperText = (): string => {
     if (error) return error;
-    if (value && !validateAadhaar(value)) return 'Invalid Aadhaar number format';
+    if (value && !validateAadhaar(value)) return t('aadhaar_input.invalid_format');
     return '';
   };
 
   return (
     <div className="space-y-2">
       <Typography variant="subtitle2" color="textSecondary">
-        Aadhaar Number {required && <span className="text-red-500">*</span>}
+        {t('aadhaar_input.label')} {required && <span className="text-red-500">*</span>}
       </Typography>
       <StyledTextField
         fullWidth
@@ -65,7 +68,7 @@ const AadhaarInput: React.FC<AadhaarInputProps> = ({
         className="font-mono"
       />
       <Typography variant="caption" color="textSecondary">
-        Enter your 12-digit Aadhaar number
+        {t('aadhaar_input.helper_text')}
       </Typography>
     </div>
   );

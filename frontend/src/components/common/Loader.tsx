@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { CircularProgress, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 interface LoaderProps {
   text?: string;
@@ -8,16 +10,18 @@ interface LoaderProps {
 }
 
 const Loader: React.FC<LoaderProps> = ({
-  text = 'Loading...',
+  text = 'loader.loading',
   size = 40,
   fullScreen = false,
 }) => {
+  const { t } = useTranslation();
+
   const content = (
     <div className="flex flex-col items-center justify-center gap-4">
       <CircularProgress size={size} />
       {text && (
         <Typography variant="body2" color="textSecondary">
-          {text}
+          {t(text)}
         </Typography>
       )}
     </div>

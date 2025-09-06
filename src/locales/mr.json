@@ -1,0 +1,35 @@
+
+{
+  "app": {
+    "name": "पतंजली"
+  },
+  "common": {
+    "back": "मागे",
+    "submit": "सादर करा",
+    "cancel": "रद्द करा",
+    "loading": "लोड करत आहे...",
+    "error": "त्रुटी",
+    "success": "यशस्वी"
+  },
+  "auth": {
+    "login": "लॉगिन",
+    "logout": "लॉगआउट",
+    "register": "नोंदणी करा",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "forgot_password": "पासवर्ड विसरलात?"
+  },
+  "loan": {
+    "apply_loan": "कर्जासाठी अर्ज करा",
+    "loan_schemes": "कर्ज योजना",
+    "my_loans": "माझे कर्ज",
+    "loan_type": "कर्जाचा प्रकार",
+    "amount": "रक्कम",
+    "tenure": "कालावधी (महिने)",
+    "purpose": "उद्देश",
+    "status": "स्थिती",
+    "pending": "प्रलंबित",
+    "approved": "मंजूर",
+    "rejected": "नाकारले"
+  }
+}

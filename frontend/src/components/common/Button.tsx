@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Button as MuiButton,
@@ -5,6 +6,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 interface ButtonProps extends MuiButtonProps {
   loading?: boolean;
@@ -30,6 +32,8 @@ const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
+  const { t } = useTranslation();
+
   return (
     <StyledButton
       disabled={loading || disabled}
@@ -39,7 +43,7 @@ const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <CircularProgress size={24} color="inherit" />
       ) : (
-        <span className="flex items-center gap-2">{children}</span>
+        <span className="flex items-center gap-2">{t(children as string)}</span>
       )}
     </StyledButton>
   );

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -9,6 +10,7 @@ import {
 } from '@mui/material';
 import { X } from 'lucide-react';
 import Button from './Button';
+import { useTranslation } from 'react-i18next';
 
 interface ModalProps {
   open: boolean;
@@ -41,6 +43,8 @@ const Modal: React.FC<ModalProps> = ({
   onSecondaryAction,
   loading = false,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <Dialog
       open={open}
@@ -49,7 +53,7 @@ const Modal: React.FC<ModalProps> = ({
       fullWidth={fullWidth}
     >
       <DialogTitle className="flex items-center justify-between">
-        <Typography variant="h6">{title}</Typography>
+        <Typography variant="h6">{t(title)}</Typography>
         {showCloseButton && (
           <IconButton onClick={onClose} size="small">
             <X size={20} />
@@ -67,7 +71,7 @@ const Modal: React.FC<ModalProps> = ({
                   onClick={onSecondaryAction || onClose}
                   disabled={loading}
                 >
-                  {secondaryButtonText}
+                  {t(secondaryButtonText)}
                 </Button>
               )}
               {primaryButtonText && (
@@ -76,7 +80,7 @@ const Modal: React.FC<ModalProps> = ({
                   onClick={onPrimaryAction}
                   loading={loading}
                 >
-                  {primaryButtonText}
+                  {t(primaryButtonText)}
                 </Button>
               )}
             </>

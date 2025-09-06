@@ -140,4 +140,3 @@ const BankDetailsInput: React.FC<BankDetailsInputProps> = ({
 };
 
 export default BankDetailsInput;
-}

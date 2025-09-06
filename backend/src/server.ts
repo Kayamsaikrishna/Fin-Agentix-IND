@@ -1,14 +1,15 @@
+
 import app from './app';
-import { connectDatabase } from './config/database';
+import { connectDB } from './database/connection';
 import { connectRedis } from './config/redis';
-import logger from './config/logger';
+import { logger } from './config/logger';
 
 const PORT = process.env.PORT || 3000;
 
 async function startServer() {
   try {
     // Connect to databases
-    await connectDatabase();
+    await connectDB();
     await connectRedis();
     
     // Start server

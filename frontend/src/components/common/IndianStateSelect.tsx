@@ -1,5 +1,7 @@
+
 import React from 'react';
 import Select from './Select';
+import { useTranslation } from 'react-i18next';
 
 const INDIAN_STATES = [
   { value: 'AN', label: 'Andaman and Nicobar Islands' },
@@ -56,16 +58,23 @@ const IndianStateSelect: React.FC<IndianStateSelectProps> = ({
   required = false,
   disabled = false,
 }) => {
+  const { t } = useTranslation();
+
+  const translatedStates = INDIAN_STATES.map(state => ({
+    ...state,
+    label: t(`states.${state.value}`)
+  }));
+
   return (
     <Select
-      label="State"
-      options={INDIAN_STATES}
+      label={t('indian_state_select.label')}
+      options={translatedStates}
       value={value}
       onChange={onChange}
       error={error}
       required={required}
       disabled={disabled}
-      placeholder="Select state"
+      placeholder={t('indian_state_select.placeholder')}
     />
   );
 };
