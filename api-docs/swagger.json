@@ -1,7 +1,156 @@
+
 {
-  "name": "swagger.json",
-  "description": "Configuration for swagger.json",
-  "version": "1.0.0",
-  "lastUpdated": "2025-08-31T23:14:25.682627",
-  "data": {}
+  "swagger": "2.0",
+  "info": {
+    "title": "Fin-Agentix API",
+    "description": "API for Fin-Agentix, a fintech platform for financial agents.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/api/v1",
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "description": "Creates a new user account.",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": "User object that needs to be added to the store",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User created successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Logs in a user",
+        "description": "Logs in a user and returns a JWT token.",
+        "parameters": [
+          {
+            "name": "credentials",
+            "in": "body",
+            "description": "User credentials",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful login"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/aadhaar/initiate": {
+      "post": {
+        "summary": "Initiate Aadhaar verification",
+        "description": "Sends an OTP to the user's Aadhaar-linked mobile number.",
+        "parameters": [
+          {
+            "name": "aadhaar",
+            "in": "body",
+            "description": "Aadhaar number",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "aadhaar_number": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully"
+          },
+          "400": {
+            "description": "Invalid Aadhaar number"
+          }
+        }
+      }
+    },
+    "/aadhaar/verify": {
+      "post": {
+        "summary": "Verify Aadhaar OTP",
+        "description": "Verifies the Aadhaar OTP and updates the user's verification status.",
+        "parameters": [
+          {
+            "name": "otp",
+            "in": "body",
+            "description": "Aadhaar OTP",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "otp": {
+                  "type": "string"
+                },
+                "reference_id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aadhaar verified successfully"
+          },
+          "400": {
+            "description": "Invalid OTP"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "aadhaar_number": {
+          "type": "string"
+        }
+      }
+    }
+  }
 }
