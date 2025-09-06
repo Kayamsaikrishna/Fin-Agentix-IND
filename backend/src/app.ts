@@ -1,9 +1,12 @@
+ 
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import morgan from 'morgan';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import expressWinston from 'express-winston';
+import rateLimit from 'express-rate-limit';
+import secureJson from 'secure-json-parse';
 
 // Routes
 import authRoutes from './routes/auth';
@@ -12,19 +15,50 @@ import kycRoutes from './routes/kyc';
 
 // Middleware
 import { errorHandler } from './middleware/errorHandler';
-import { rateLimiter } from './middleware/rateLimiter';
+import logger from './config/logger';
 
 const app = express();
 
 // Security middleware
 app.use(helmet());
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  })
+);
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use(cors());
 app.use(compression());
-app.use(morgan('combined'));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '10mb', reviver: secureJson.reviver }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(rateLimiter);
+app.use(limiter);
+
+// Logger middleware
+app.use(expressWinston.logger({
+  winstonInstance: logger,
+  meta: true,
+  msg: "HTTP {{req.method}} {{req.url}}",
+  expressFormat: true,
+  colorize: false,
+}));
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
