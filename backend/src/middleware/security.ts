@@ -1,2 +1,4 @@
-// src/middleware/security.ts
-// TODO: Implement security.ts
+
+import helmet from 'helmet';
+
+export const securityMiddleware = helmet();

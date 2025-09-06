@@ -1,21 +1,20 @@
 
 import { Router } from 'express';
-import {
-  applyForLoan,
-  getLoanApplication,
-  getUserLoanApplications,
-  updateLoanStatus,
-} from '../controllers/loanController';
+import { loanApplicationController } from '../controllers/loanApplicationController';
 import { authMiddleware } from '../middleware/authMiddleware';
-import { roleMiddleware } from '../middleware/roleMiddleware';
-import { validate } from '../middleware/validation';
-import { loanApplicationRules } from '../utils/validationRules';
 
 const router = Router();
 
-router.post('/', authMiddleware, loanApplicationRules, validate, applyForLoan);
-router.get('/:id', authMiddleware, getLoanApplication);
-router.get('/user/:userId', authMiddleware, getUserLoanApplications);
-router.put('/:id/status', authMiddleware, roleMiddleware(['admin', 'agent']), updateLoanStatus);
+// @route   POST api/v1/loans/apply
+// @desc    Apply for a new loan
+// @access  Private
+router.post('/apply', authMiddleware, loanApplicationController.submitApplication);
+
+// @route   GET api/v1/loans/:id
+// @desc    Get loan application status
+// @access  Private
+router.get('/:id/status', authMiddleware, loanApplicationController.getApplicationStatus);
+
+router.post('/:id/documents', authMiddleware, loanApplicationController.uploadDocument);
 
 export default router;

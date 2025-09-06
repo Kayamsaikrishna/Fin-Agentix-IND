@@ -33,6 +33,7 @@
     "start:server": "python server.py"
   },
   "devDependencies": {
+    "@types/multer-s3": "^3.0.3",
     "concurrently": "^8.2.0",
     "husky": "^8.0.3",
     "lint-staged": "^15.0.0"
@@ -48,10 +49,21 @@
   "author": "Fin-Agentix India Team",
   "license": "PROPRIETARY",
   "dependencies": {
+    "@aws-sdk/s3-request-presigner": "^3.883.0",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@types/sequelize": "^4.28.20",
+    "axios": "^1.11.0",
+    "bcrypt": "^6.0.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^8.1.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.542.0",
+    "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
     "react-router-dom": "^7.8.2",
     "secure-json-parse": "^4.0.0",
     "sequelize": "^6.37.7",

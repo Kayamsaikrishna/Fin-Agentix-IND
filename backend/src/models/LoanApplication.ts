@@ -2,6 +2,7 @@
 import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../database/connection';
 import { User } from './User';
+import { Loan } from './Loan';
 
 class LoanApplication extends Model {
   public id!: number;
@@ -9,8 +10,11 @@ class LoanApplication extends Model {
   public loanType!: string;
   public amount!: number;
   public status!: string;
-  public applicationDate!: Date;
-  public decisionDate!: Date | null;
+  public purpose!: string;
+  public user!: User;
+  public loan!: Loan;
+  public remarks!: string;
+  public term!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -40,15 +44,18 @@ LoanApplication.init({
   status: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: 'Pending',
+    defaultValue: 'PENDING',
   },
-  applicationDate: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
+  purpose: {
+    type: DataTypes.TEXT,
+    allowNull: true,
   },
-  decisionDate: {
-    type: DataTypes.DATE,
+  remarks: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  term: {
+    type: DataTypes.INTEGER,
     allowNull: true,
   },
 }, {
@@ -56,7 +63,7 @@ LoanApplication.init({
   tableName: 'loan_applications',
 });
 
-LoanApplication.belongsTo(User, { foreignKey: 'userId' });
-User.hasMany(LoanApplication, { foreignKey: 'userId' });
+LoanApplication.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+LoanApplication.hasOne(Loan, { foreignKey: 'applicationId', as: 'loan' });
 
 export { LoanApplication };

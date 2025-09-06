@@ -1,56 +1,46 @@
 
-import { Request, Response } from 'express';
-import {
-  createLoanApplication,
-  getLoanApplicationById,
-  getLoanApplicationsByUserId,
-  updateLoanApplicationStatus,
-} from '../services/loanService';
+import { Request, Response, NextFunction } from 'express';
+import { loanService } from '../services/loanService';
+import { AppError } from '../middleware/errorHandler';
 
-export const applyForLoan = async (req: Request, res: Response) => {
-  try {
-    const loanApplication = await createLoanApplication(req.body);
-    res.status(201).json({ message: 'Loan application submitted successfully', loanApplication });
-  } catch (error) {
-    res.status(500).json({ message: 'Error submitting loan application', error });
-  }
-};
-
-export const getLoanApplication = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const loanApplication = await getLoanApplicationById(Number(id));
-    if (loanApplication) {
-      res.json(loanApplication);
-    } else {
-      res.status(404).json({ message: 'Loan application not found' });
+class LoanController {
+  async listMyLoans(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).user.id;
+      const loans = await loanService.listUserLoans(userId);
+      res.status(200).json(loans);
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    res.status(500).json({ message: 'Error retrieving loan application', error });
   }
-};
 
-export const getUserLoanApplications = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
-    const loanApplications = await getLoanApplicationsByUserId(Number(userId));
-    res.json(loanApplications);
-  } catch (error) {
-    res.status(500).json({ message: 'Error retrieving loan applications', error });
-  }
-};
-
-export const updateLoanStatus = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-    const loanApplication = await updateLoanApplicationStatus(Number(id), status);
-    if (loanApplication) {
-      res.json({ message: 'Loan status updated successfully', loanApplication });
-    } else {
-      res.status(404).json({ message: 'Loan application not found' });
+  async getLoan(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).user.id;
+      const loanId = parseInt(req.params.id);
+      const loan = await loanService.getLoanDetails(loanId, userId);
+      res.status(200).json(loan);
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating loan status', error });
   }
-};
+
+  async makePayment(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).user.id;
+      const loanId = parseInt(req.params.id);
+      const { amount } = req.body;
+
+      if (!amount || typeof amount !== 'number') {
+        throw new AppError('Invalid payment amount', 400);
+      }
+
+      const result = await loanService.makeLoanPayment(loanId, userId, amount);
+      res.status(200).json({ message: 'Payment successful', ...result });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export const loanController = new LoanController();

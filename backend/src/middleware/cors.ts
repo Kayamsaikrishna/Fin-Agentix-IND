@@ -1,2 +1,4 @@
-// src/middleware/cors.ts
-// TODO: Implement cors.ts
+
+import cors from 'cors';
+
+export const corsMiddleware = cors();

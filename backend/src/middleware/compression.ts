@@ -1,2 +1,4 @@
-// src/middleware/compression.ts
-// TODO: Implement compression.ts
+
+import compression from 'compression';
+
+export const compressionMiddleware = compression();

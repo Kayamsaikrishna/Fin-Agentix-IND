@@ -1,2 +1,7 @@
-// src/middleware/logging.ts
-// TODO: Implement logging.ts
+
+import { Request, Response, NextFunction } from 'express';
+
+export const logging = (req: Request, res: Response, next: NextFunction) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+};

@@ -1,5 +1,5 @@
 import Redis from 'redis';
-import { logger } from './logger';
+import logger from './logger';
 
 let redisClient: any;
 

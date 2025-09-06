@@ -1,17 +1,31 @@
 
 import winston from 'winston';
 
+const { combine, timestamp, printf, colorize, align } = winston.format;
+
+// Custom log format
+const logFormat = printf(({ level, message, timestamp }) => {
+  return `${timestamp} [${level}]: ${message}`;
+});
+
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
+  format: combine(
+    colorize(),
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    align(),
+    logFormat
   ),
   transports: [
+    // In production, you would likely have different transports,
+    // like logging to a file or a logging service.
     new winston.transports.Console(),
-    // In a production environment, you would also want to log to a file
-    // new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    // new winston.transports.File({ filename: 'combined.log' }),
+  ],
+  exceptionHandlers: [
+    new winston.transports.Console()
+  ],
+  rejectionHandlers: [
+    new winston.transports.Console()
   ],
 });
 

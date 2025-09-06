@@ -1,45 +1,34 @@
 
-import { Request, Response } from 'express';
-import {
-  createKYCVerification,
-  getKYCVerificationByUserId,
-  updateKYCVerificationStatus,
-} from '../services/kycService';
+import { Request, Response, NextFunction } from 'express';
+import { kycService } from '../services/kycService';
+import { AppError } from '../middleware/errorHandler';
 
-export const submitKYC = async (req: Request, res: Response) => {
-  try {
-    const kycVerification = await createKYCVerification(req.body);
-    res.status(201).json({ message: 'KYC submitted successfully', kycVerification });
-  } catch (error) {
-    res.status(500).json({ message: 'Error submitting KYC', error });
-  }
-};
+class KycController {
+  async submitKyc(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).user.id;
+      const { aadharNumber, panNumber } = req.body;
 
-export const getKYCStatus = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
-    const kycVerification = await getKYCVerificationByUserId(Number(userId));
-    if (kycVerification) {
-      res.json(kycVerification);
-    } else {
-      res.status(404).json({ message: 'KYC not found' });
+      if (!aadharNumber || !panNumber) {
+        throw new AppError('Aadhar number and PAN number are required', 400);
+      }
+
+      const kycResult = await kycService.startKycProcess(userId, aadharNumber, panNumber);
+      res.status(200).json({ message: 'KYC process completed', kyc: kycResult });
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    res.status(500).json({ message: 'Error retrieving KYC status', error });
   }
-};
 
-export const updateKYCStatus = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
-    const { status } = req.body;
-    const kycVerification = await updateKYCVerificationStatus(Number(userId), status);
-    if (kycVerification) {
-      res.json({ message: 'KYC status updated successfully', kycVerification });
-    } else {
-      res.status(404).json({ message: 'KYC not found' });
+  async getStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).user.id;
+      const kycStatus = await kycService.getKycStatus(userId);
+      res.status(200).json(kycStatus);
+    } catch (error) {
+      next(error);
     }
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating KYC status', error });
   }
-};
+}
+
+export const kycController = new KycController();

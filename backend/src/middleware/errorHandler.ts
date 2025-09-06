@@ -1,7 +1,29 @@
 
 import { Request, Response, NextFunction } from 'express';
-import { handleError } from '../utils/errorHandler';
 
-export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
-  handleError(err, res);
+export class AppError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.statusCode = statusCode;
+    this.name = 'AppError';
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+export const errorHandler = (err: AppError | Error, req: Request, res: Response, next: NextFunction) => {
+    if (err instanceof AppError) {
+        return res.status(err.statusCode).json({
+            status: 'error',
+            message: err.message
+        });
+    }
+
+    console.error('ERROR 💥', err);
+
+    res.status(500).json({
+        status: 'error',
+        message: 'Something went very wrong!'
+    });
 };

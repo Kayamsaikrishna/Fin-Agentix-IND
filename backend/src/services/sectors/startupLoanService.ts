@@ -1,6 +1,14 @@
-// backend/src/services/sectors/startupLoanService.ts
-// TODO: Implement startupLoanService.ts
 
-export default function startupLoanService() {
-  // Implementation here
-}
+import { LoanApplication } from '../../models/LoanApplication';
+
+export const getStartupLoanDetails = (application: LoanApplication, businessPlan: any) => {
+    return {
+        loanType: 'Startup',
+        amount: application.amount,
+        purpose: application.purpose,
+        businessPlan: {
+            summary: businessPlan.summary,
+            marketAnalysis: businessPlan.marketAnalysis,
+        },
+    };
+};

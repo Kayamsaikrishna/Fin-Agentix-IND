@@ -1,26 +1,28 @@
 
-import app from './app';
-import { connectDB } from './database/connection';
-import { connectRedis } from './config/redis';
-import { logger } from './config/logger';
+import { app } from './app';
+import { sequelize } from './database/connection';
+import { router } from './routes';
+import { securityMiddleware } from './middleware/security';
+import { corsMiddleware } from './middleware/cors';
+import { compressionMiddleware } from './middleware/compression';
+import { logging } from './middleware/logging';
+import { rateLimiter } from './middleware/rateLimiter';
+import { errorHandler } from './middleware/errorHandler';
 
 const PORT = process.env.PORT || 3000;
 
-async function startServer() {
-  try {
-    // Connect to databases
-    await connectDB();
-    await connectRedis();
-    
-    // Start server
-    app.listen(PORT, () => {
-      logger.info(`🚀 Fin-Agentix India API Server running on port ${PORT}`);
-      logger.info(`📊 Environment: ${process.env.NODE_ENV}`);
-    });
-  } catch (error) {
-    logger.error('❌ Failed to start server:', error);
-    process.exit(1);
-  }
-}
+app.use(securityMiddleware);
+app.use(corsMiddleware);
+app.use(compressionMiddleware);
+app.use(logging);
+app.use(rateLimiter);
 
-startServer();
+app.use('/api', router);
+
+app.use(errorHandler);
+
+sequelize.sync().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+});

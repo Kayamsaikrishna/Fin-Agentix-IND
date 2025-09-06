@@ -1,27 +1,17 @@
-import { Knex } from 'knex';
-import { MongoClient } from 'mongodb';
 
-export const knexConfig: Knex.Config = {
-  client: 'postgresql',
-  connection: process.env.DATABASE_URL,
-  pool: {
-    min: 2,
-    max: 10
-  },
-  migrations: {
-    directory: '../database/migrations'
-  },
-  seeds: {
-    directory: '../database/seeds'
-  }
-};
+import { Sequelize } from 'sequelize';
+
+const sequelize = new Sequelize(process.env.DATABASE_URL || '', {
+  dialect: 'postgres',
+});
+
+export { sequelize };
 
 export async function connectDatabase() {
-  // PostgreSQL connection logic
-  console.log('📊 Connecting to PostgreSQL...');
-}
-
-export async function connectMongoDB() {
-  // MongoDB connection logic
-  console.log('📊 Connecting to MongoDB...');
+  try {
+    await sequelize.authenticate();
+    console.log('📊 Connection has been established successfully.');
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+  }
 }

@@ -7,10 +7,11 @@ import { LoanApplication } from './LoanApplication';
 class Document extends Model {
   public id!: number;
   public userId!: number;
-  public loanApplicationId!: number | null;
+  public applicationId!: number;
   public documentType!: string;
-  public filePath!: string;
-  public uploadDate!: Date;
+  public url!: string;
+  public storageKey!: string;
+  public status!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -29,9 +30,9 @@ Document.init({
       key: 'id',
     },
   },
-  loanApplicationId: {
+  applicationId: {
     type: DataTypes.INTEGER,
-    allowNull: true,
+    allowNull: false,
     references: {
       model: LoanApplication,
       key: 'id',
@@ -41,14 +42,17 @@ Document.init({
     type: DataTypes.STRING,
     allowNull: false,
   },
-  filePath: {
+  url: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  uploadDate: {
-    type: DataTypes.DATE,
+  storageKey: {
+    type: DataTypes.STRING,
     allowNull: false,
-    defaultValue: DataTypes.NOW,
+  },
+  status: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
 }, {
   sequelize,
@@ -56,8 +60,8 @@ Document.init({
 });
 
 Document.belongsTo(User, { foreignKey: 'userId' });
-Document.belongsTo(LoanApplication, { foreignKey: 'loanApplicationId' });
+Document.belongsTo(LoanApplication, { foreignKey: 'applicationId' });
 User.hasMany(Document, { foreignKey: 'userId' });
-LoanApplication.hasMany(Document, { foreignKey: 'loanApplicationId' });
+LoanApplication.hasMany(Document, { as: 'documents', foreignKey: 'applicationId' });
 
 export { Document };
