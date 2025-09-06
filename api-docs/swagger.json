@@ -6,7 +6,6 @@
     "description": "API for Fin-Agentix, a fintech platform for financial agents.",
     "version": "1.0.0"
   },
-  "host": "localhost:8080",
   "basePath": "/api/v1",
   "schemes": [
     "http"

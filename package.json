@@ -29,7 +29,8 @@
     "setup:data": "python scripts/data_processing/initialize_datasets.py",
     "security:scan": "./scripts/security/security_scan.sh",
     "db:migrate": "cd backend && npm run db:migrate",
-    "db:seed": "cd backend && npm run db:seed"
+    "db:seed": "cd backend && npm run db:seed",
+    "start:server": "python server.py"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
